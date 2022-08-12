@@ -63,11 +63,13 @@ image
 
 image
 
-Apache AirFlow Mini Project 2 (Log Analyzer)
+### Apache AirFlow Mini Project 2 (Log Analyzer) ###
 
 Python script to process the Airflow Logs and identify the Error messages. Log analyzer should show the following information:
 
-The total count of error messages
-A detailed message regarding each error
+* The total count of error messages
+
+* A detailed message regarding each error
+
 Usage: python LogParser.py Specify the location of Airflow log directory
 
