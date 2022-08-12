@@ -13,7 +13,6 @@ Airflow DAG Scheduling
 * If failed: retry twice with a 5-minute interval.
 
 
-
 2. Create operators associated with the DAG
 
     2.1. Create a BashOperator to initialize a temporary directory for data download (t0)
@@ -24,6 +23,7 @@ Airflow DAG Scheduling
 
     2.4. Create a PythonOperator to run a query on both data files in the specified location(t5)
 
+
 3. Set job dependencies After defining all the tasks, you need to set their job dependencies so:
 
 * t1 and t2 must run only after t0
@@ -33,6 +33,7 @@ Airflow DAG Scheduling
 * t4 must run after t2
 
 * t5 must run after both t3 and t4 are complete
+
 
 ### Steps to Run: ###
 
