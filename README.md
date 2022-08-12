@@ -1,6 +1,6 @@
 ApacheAirflow
 ------------------------------------------------------------------------------------------------------------------------------------------------------------
-### Apache AirFlow Mini Project Part1 (Create and Schedule DAG) ###
+###Apache AirFlow Mini Project Part1 (Create and Schedule DAG)###
 
 1. Create the Airflow DAG Create the DAG object with name “marketvol”. Set the default arguments. Your DAG run should follows:
 
@@ -25,11 +25,15 @@ ApacheAirflow
 
 3. Set job dependencies After defining all the tasks, you need to set their job dependencies so:
 
-t1 and t2 must run only after t0
-t3 must run after t1
-t4 must run after t2
-t5 must run after both t3 and t4 are complete
-Steps to Run:
+* t1 and t2 must run only after t0
+
+* t3 must run after t1
+
+* t4 must run after t2
+
+* t5 must run after both t3 and t4 are complete
+
+###Steps to Run:###
 
 Download the files on Git Hub.
 Save the .py file in /root/airflow/dags directory
