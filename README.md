@@ -2,8 +2,7 @@ ApacheAirflow
 ------------------------------------------------------------------------------------------------------------------------------------------------------------
 Apache AirFlow Mini Project Part1 (Create and Schedule DAG)
 
-Create the Airflow DAG Create the DAG object with name “marketvol”. Set the default arguments. Your DAG run should follows:
-
+1. Create the Airflow DAG Create the DAG object with name “marketvol”. Set the default arguments. Your DAG run should follows:
 Start time and date: 6 PM on the current date.
 Job interval: runs once daily.
 Only runs on weekdays (Mon-Fri).
