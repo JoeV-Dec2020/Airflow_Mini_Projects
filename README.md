@@ -13,6 +13,7 @@ Airflow DAG Scheduling
 * If failed: retry twice with a 5-minute interval.
 
 
+
 2. Create operators associated with the DAG
 
     2.1. Create a BashOperator to initialize a temporary directory for data download (t0)
