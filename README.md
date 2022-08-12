@@ -3,11 +3,17 @@ ApacheAirflow
 Apache AirFlow Mini Project Part1 (Create and Schedule DAG)
 
 1. Create the Airflow DAG Create the DAG object with name “marketvol”. Set the default arguments. Your DAG run should follows:
+
 Start time and date: 6 PM on the current date.
+
 Job interval: runs once daily.
+
 Only runs on weekdays (Mon-Fri).
+
 If failed: retry twice with a 5-minute interval.
-Create operators associated with the DAG 2.1. Create a BashOperator to initialize a temporary directory for data download (t0) 2.2. Create a PythonOperator to download the market data (t1, t2) 2.3. Create BashOperator to move the downloaded file to a data location (t3, t4) 2.4. Create a PythonOperator to run a query on both data files in the specified location(t5)
+
+
+2. Create operators associated with the DAG 2.1. Create a BashOperator to initialize a temporary directory for data download (t0) 2.2. Create a PythonOperator to download the market data (t1, t2) 2.3. Create BashOperator to move the downloaded file to a data location (t3, t4) 2.4. Create a PythonOperator to run a query on both data files in the specified location(t5)
 
 Set job dependencies After defining all the tasks, you need to set their job dependencies so:
 
