@@ -35,20 +35,26 @@ ApacheAirflow
 
 ### Steps to Run: ###
 
-Download the files on Git Hub.
-Save the .py file in /root/airflow/dags directory
-Save the .sh file in /root/airflow/scripts directory
-Execute : airflow db init
-Execute : airflow scheduler
-Execute : airflow webserver -p 8080 Copy : localhost:8080 in your web browser and this will open the Airflow Web UI to monitor the job status
-Components:
+1. Download the files on Git Hub.
+2. Save the .py file in /root/airflow/dags directory
+3. Save the .sh file in /root/airflow/scripts directory
+4. Execute : airflow db init
+5. Execute : airflow scheduler
+6. Execute : airflow webserver -p 8080 Copy : localhost:8080 in your web browser and this will open the Airflow Web UI to monitor the job status
+
+### Components: ###
+
 DAG File : airflowminiproject.py
+
 Scripts:
+
 makedir.sh (t0)
+
 movedir_TSLA.sh (t3)
+
 movedir_AAPL.sh (t4)
 
-DAG Screenshot:
+### DAG Screenshot: ###
 image
 
 image
