@@ -1,140 +1,143 @@
 README.md
 
 ## Airflow Mini-Project ##
-## DAG Scheduling ##
+## Log Analyzer ##
 
 **Estimated Time: 3-5 hours**
 
-In this project, you’ll use Apache Airflow to create a data pipeline to extract online stock market
-data and deliver analytical results. You’ll use Yahoo Finance as the data source. Yahoo Finance
-provides intra-day market price details down a one-minute interval.
+This mini-project will build on the work you did in your previous Airflow mini-project.
 
-You’ll work with two stock symbols: AAPL and TSLA. The workflow should be scheduled to run
-at 6 PM on every weekday (Mon - Fri), which functions as below:
-- Download the daily price data with one minute interval for the two symbols. Each symbol
-will have a separate task, Task1 (t1) and Task2 (t2), which run independently and in
-parallel.
-- Save both datasets into CSV files and load them into HDFS. Each symbol will have a
-separate task, Task3 (t3) and Task4 (t4), which run independently and in parallel.
-- Run your custom query on the downloaded dataset for both symbols, Task5 (t5). Before
-this step executes, all previous tasks must complete.
-- Use Celery Executor in Airflow to run the job.
+Once you have scheduled a DAG object in Airflow, you need to monitor the status of various
+jobs in your pipeline on a regular basis. One way to monitor the job status is to analyze the log
+messages generated from each run. In this project, you will create a log analyzer in Python to
+monitor the DAG Airflow you set up in the previous mini-project.
 
-The source data has the following schema.
-Column | Type
--------|-----
-date time | STRING
-open | DECIMAL
-high | DECIMAL (highest price within the time interval)
-low | DECIMAL (lowest price within the time interval)
-close | DECIMAL (the last price of the time interval)
-adj close | DECIMAL
-volume | DECIMAL
+Your log analyzer should show the following information:
+* The total count of error messages
+* A detailed message regarding each error
 
 **Learning Objectives**
 
-With this mini-project, you will utilize Apache Airflow to orchestrate your pipeline, exercise the
-DAG creation, uses of various operators (BashOperator, PythonOperator, etc), setting up order
-of operation of each task.
+With this mini-project, you will exercise the text processing techniques using Python. Parsing
+text files and getting useful information from logs is a common practice in real life projects. Also,
+you will learn where the logs are located in Airflow processes.
 
-In this mini-project, you will gain familiarity with how to use Apache Airflow to automate data
-pipelining tasks. Along the way, you will learn how to:
-* Use Apache Airflow to orchestrate your pipeline
-* Exercise DAG creation
-* Use Various Airflow operators like BashOperator and PythonOperator
-* Set up the order operation of each task
-* Use Celery Executor to run your job
-
-**Prerequisites**
-- Install Airflow: http://airflow.apache.org/docs/stable/installation.html
-- For this project, you’ll need Yahoo Finance’s Python library. You can install it using the
-command: `pip install yfinance`
-- Install pandas using the command: `pip install pandas`
+In this mini-project, you will:
+* Use text processing techniques in Python to make sense of logs
+* Learn where logs are located in Airflow
+* Learn how to monitor automated Airflow DAGs to ensure they are working properly
 
 **Instructions**
 
-**1. Create the Airflow DAG**
+**1. Locate the log files for your application**
 
-Create the DAG object with name “marketvol”. Set the default arguments. Your DAG run should
-follows:
-* Start time and date: 6 PM on the current date.
-* Job interval: runs once daily.
-* Only runs on weekdays (Mon-Fri).
-* If failed: retry twice with a 5-minute interval.
+In Airflow, the location of the log file is configured at ~/airflow/airflow.cfg. Set the variable
+base_log_folder to the location of your log file.
 
 ```
-dag = DAG(
-    'marketvol',
-    default_args=default_args,
-    description='A simple DAG',
-    schedule_interval=timedelta(days=1),
-)
+# The folder where airflow should store its log files
+# This path must be absolute
+base_log_folder = /Users/wpengyu/airflow/logs
 ```
 
-**2. Create operators associated with the DAG**
-
-**2.1. Create a BashOperator to initialize a temporary directory for data download (t0)**
-
-This temporary directory should be named after the execution date (for example “2020-09-24”)
-so that the data for each date is placed accordingly. You can use the shell command to create
-the directory:
-
-`mkdir -p /tmp/data/2020-09-24`
-
-**2.2. Create a PythonOperator to download the market data (t1, t2)**
-
-This example downloads and saves the file. Make your own function the Airflow runs with the
-stock symbol type as a parameter.
+You will find the directory with the name of your DAG application, under which each task in the
+DAG will appear as a subdirectory.
 
 ```
-import yfinance as yf  
-start_date = date.today()  
-end_date = start_date + timedelta(days=1)  
-tsla_df = yf.download('TSLA', start=start_date, end=end_date, interval='1m')  
-tsla_df.to_csv("data.csv" header=False)
+sh-3.2$ ls -l ~/airflow/logs/
+total 0
+drwxr-xr-x 3 myuser staff 96 Sep 17 20:26 dag_processor_manager
+drwxrwxrwx 9 myuser staff 288 Sep 25 20:11 marketvol
+drwxr-xr-x 20 myuser staff 640 Sep 30 20:02 scheduler
+drwxrwxrwx 5 myuser staff 160 Sep 17 20:27 tutorial
+sh-3.2$ ls -l ~/airflow/logs/marketvol/
+total 0
+drwxrwxrwx 15 myuser staff 480 Sep 30 20:03 copy_AAPL
+drwxrwxrwx 15 myuser staff 480 Sep 30 20:03 copy_TSLA
+drwxrwxrwx 15 myuser staff 480 Sep 30 20:03 init
+drwxrwxrwx 15 myuser staff 480 Sep 30 20:03 python_download_AAPL
+drwxrwxrwx 15 myuser staff 480 Sep 30 20:03 python_download_TSLA
+drwxrwxrwx 8 myuser staff 256 Sep 30 20:03 python_show_count
+drwxrwxrwx 9 myuser staff 288 Sep 24 20:00 python_show_vol
 ```
 
-The PythonOperator should call the above function. Name the operators t1 and t2 for the
-symbol AAPL and TSLA respectively.
+**2. Create a log analyzer with Python**
 
-**2.3. Create BashOperator to move the downloaded file to a data location (t3, t4)**
-
-Once the file is downloaded for each stock symbol type, the next step is to move that file into
-the designated location where your query will target when it runs. This is easy to do with a
-BashOperator. You should create one task per symbol (t3, t4), for a total of two tasks. The query
-will operate on both symbols together, so both files should be moved to the same directory.
+Log message follows a standard format. Each log entry starts with a datetime and the code line
+number, followed by the message types (INFO, WARNING, ERROR, etc).
 
 ```
-t3 = BashOperator(  
-# [fill in options]  
-dag=dag)
+[2020-10-03 20:00:25,474] {scheduler_job.py:963} INFO - 2 tasks up for execution:
+<TaskInstance: marketvol.python_download_AAPL 2020-10-03 00:00:00+00:00 [scheduled]>
+<TaskInstance: marketvol.python_download_TSLA 2020-10-03 00:00:00+00:00 [scheduled]>
+[2020-10-03 20:00:25,478] {scheduler_job.py:997} INFO - Figuring out tasks to run in
+Pool(name=default_pool) with 128 open slots and 2 task instances ready to be queued
+[2020-10-03 20:00:25,478] {scheduler_job.py:1025} INFO - DAG marketvol has 0/16 running and
+queued tasks
+[2020-10-03 20:00:25,478] {scheduler_job.py:1025} INFO - DAG marketvol has 1/16 running and
+queued tasks
+[2020-10-03 20:00:25,481] {scheduler_job.py:1085} INFO - Setting the following tasks to queued
+state:
+<TaskInstance: marketvol.python_download_AAPL 2020-10-03 00:00:00+00:00 [scheduled]>
+<TaskInstance: marketvol.python_download_TSLA 2020-10-03 00:00:00+00:00 [scheduled]>
+[2020-10-03 20:00:25,494] {scheduler_job.py:1159} INFO - Setting the following 2 tasks to queued
+state:
+<TaskInstance: marketvol.python_download_AAPL 2020-10-03 00:00:00+00:00 [queued]>
+<TaskInstance: marketvol.python_download_TSLA 2020-10-03 00:00:00+00:00 [queued]>
+[2020-10-03 16:42:53,667] {scheduler_job.py:237} WARNING - Killing PID 41926
+[2020-10-03 16:42:53,668] {scheduler_job.py:237} WARNING - Killing PID 41927
+[2020-09-26 20:15:33,479] {taskinstance.py:1150} ERROR - No columns to parse from file
 ```
 
-**2.4. Create a PythonOperator to run a query on both data files in the specified location (t5)**
+For this task, you need to find all the error messages to report. You will create a Python
+application to report the total number of errors and their associated error messages.
 
-For this step, run your query on the data you downloaded for both symbols. This step should run
-only when t3 and t4 are completed.
+**2.1. Iterate through the root directory and get all the log files**
 
-**Step 3. Set job dependencies**
+The Python application should target the root directory of the log, which will ensure all the log
+files will be analyzed. Python provides the “pathlib” module representing filesystem paths. To
+recursively list all files ending with extension “.log” follow this example:
 
-After defining all the tasks, you need to set their job dependencies so:
-* t1 and t2 must run only after t0
-* t3 must run after t1
-* t4 must run after t2
-* t5 must run after both t3 and t4 are complete
+```
+from pathlib import Path
+file_list = Path(log_dir).rglob('*.log')
+```
 
-**Step 4. Schedule the job in Airflow**
+**2.2. Create a Python method to parse each file**
 
-Now that you have prepared the job configuration, you can schedule the DAG in Airflow and let
-it run automatically as scheduled. The command is below:
+Name the method “analyze_file” and use it to parse each log file. The method should return the
+following information:
+* The total count of error entries from this file
+* A list of error message details (the errors themself)
 
-`airflow scheduler`
+The method will be called like this:
 
-Please run this Airflow for at least two days. In the next project, we will be using the scheduler
-log produced during this run.
+```
+count, cur_list = analyze_file(file)
+```
+
+The Python operators should call the analyze_file function. Name the operators t1 and t2 for the
+symbols AAPL and TSLA, respectively.
+
+**2.3. Print the cumulative information collected from all files**
+
+The application should print the cumulative error count and messages from all the log files that
+are analyzed
+
+```
+sh-3.2$ python3 log_analyzer.py /Users/myuser/airflow/logs/marketvol
+Total number of errors: 6
+Here are all the errors:
+[2020-09-27 20:12:59,742] {taskinstance.py:1150} ERROR - No columns to parse from file
+[2020-09-27 20:00:41,364] {taskinstance.py:1150} ERROR - No columns to parse from file
+[2020-09-26 20:20:46,692] {taskinstance.py:1150} ERROR - No columns to parse from file
+[2020-09-26 20:15:33,479] {taskinstance.py:1150} ERROR - No columns to parse from file
+[2020-10-03 20:06:04,487] {taskinstance.py:1150} ERROR - No columns to parse from file
+[2020-10-03 20:00:51,254] {taskinstance.py:1150} ERROR - No columns to parse from file
+```
 
 **Instruction for Submission:**
-* Push the Python code and shell script to GitHub.
-* Add a readme file to include steps to run your code and verify the result. Your mentor should be able to run it by following your instructions.
-* Readings about readme file: Example 1, Example 2
-* Attach the command line execution log for the successful job run. You can capture it in a text file.
+- Push your Python code and shell script to GitHub.
+- Add a readme file, including the steps to run your code and verify the result. Your mentor should be able to run it by following your instructions.
+- Resources for creating a readme file: Example 1, Example 2
+- Attach the command line execution log for the successful job run captured in a text file.
